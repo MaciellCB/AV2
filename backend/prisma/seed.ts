@@ -23,17 +23,23 @@ const paths: Record<StatusEquipamento, StatusEquipamento[]> = {
 };
 
 async function main() {
-  const senhaHash = await bcrypt.hash('GreenCode@123', 12);
-  await prisma.usuario.upsert({
-    where: { email: 'admin@greencode.local' },
-    update: {},
-    create: {
-      nome: 'Administrador GreenCode',
-      email: 'admin@greencode.local',
-      senhaHash,
-      papel: 'ADMINISTRADOR',
-    },
-  });
+  const demoUsers = [
+    { nome: 'Administrador GreenCode', email: 'admin@greencode.local', senha: 'GreenCode@123', papel: 'ADMINISTRADOR' as const },
+    { nome: 'Operador GreenCode', email: 'operador@greencode.local', senha: 'Operador@123', papel: 'OPERADOR' as const },
+    { nome: 'Consulta GreenCode', email: 'consulta@greencode.local', senha: 'Consulta@123', papel: 'CONSULTA' as const },
+  ];
+  for (const user of demoUsers) {
+    await prisma.usuario.upsert({
+      where: { email: user.email },
+      update: {},
+      create: {
+        nome: user.nome,
+        email: user.email,
+        senhaHash: await bcrypt.hash(user.senha, 12),
+        papel: user.papel,
+      },
+    });
+  }
 
   const organizations = [
     { nome: 'Organização Exemplo', cnpj: '00000000000191', email: 'contato@exemplo.local', telefone: '(11) 4000-1000' },
@@ -114,8 +120,8 @@ async function main() {
     }
   }
 
-  console.log('Seed concluído: 1 administrador, 3 organizações, 2 contratos, 3 lotes, 5 equipamentos e histórico de movimentações.');
-  console.log('Login de demonstração: admin@greencode.local / GreenCode@123');
+  console.log('Seed concluído: 3 usuários, 3 organizações, 2 contratos, 3 lotes, 5 equipamentos e histórico de movimentações.');
+  console.log('Contas de demonstração: admin@greencode.local, operador@greencode.local e consulta@greencode.local.');
 }
 
 main()

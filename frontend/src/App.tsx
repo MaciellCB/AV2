@@ -84,8 +84,8 @@ function fieldsFor(section: Section, item?: RecordData): FormValues {
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('gc_token') ?? '');
   const [role, setRole] = useState<Role | null>(null);
-  const [email, setEmail] = useState('admin@greencode.local');
-  const [senha, setSenha] = useState('GreenCode@123');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
   const [stats, setStats] = useState<Stats | null>(null);
   const [section, setSection] = useState<Section>('Visão geral');
   const [items, setItems] = useState<RecordData[]>([]);
@@ -405,8 +405,8 @@ export default function App() {
     <h1>GreenCode</h1>
     <p className="muted">Gestão sustentável de equipamentos e materiais.</p>
     <form onSubmit={login}>
-      <label>E-mail</label><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-      <label>Senha</label><input type="password" value={senha} onChange={(event) => setSenha(event.target.value)} required />
+      <label>E-mail</label><input type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} required />
+      <label>Senha</label><input type="password" autoComplete="current-password" value={senha} onChange={(event) => setSenha(event.target.value)} required />
       <button className="primary full" disabled={busy}>{busy ? 'Entrando…' : 'Entrar no sistema'}</button>
       {error && <p className="error">{error}</p>}
     </form>
@@ -427,7 +427,7 @@ export default function App() {
       <div className="brand">
         <div className="brand-mark small"><Recycle size={22} /></div>
         <div><strong>GreenCode</strong><span>Eco management</span></div>
-        <button className="icon-button close-mobile" onClick={() => setMobile(false)}><X /></button>
+        <button type="button" className="icon-button close-mobile" aria-label="Fechar menu" title="Fechar menu" onClick={() => setMobile(false)}><X /></button>
       </div>
       <div className="nav-label">MENU PRINCIPAL</div>
       <nav>{sections.filter((name) => name !== 'Usuários' || role === 'ADMINISTRADOR').map((name) => {

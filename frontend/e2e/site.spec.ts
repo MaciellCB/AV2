@@ -3,6 +3,8 @@ import { expect, test } from '@playwright/test';
 test('admin logs in and creates then removes a user from the site', async ({ page }) => {
   const email = `e2e-${Date.now()}@greencode.local`;
   await page.goto('/');
+  await expect(page.locator('input[type="email"]')).toHaveValue('');
+  await expect(page.locator('input[type="password"]')).toHaveValue('');
   await page.locator('input[type="email"]').fill('admin@greencode.local');
   await page.locator('input[type="password"]').fill('GreenCode@123');
   await page.getByRole('button', { name: 'Entrar no sistema' }).click();

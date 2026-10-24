@@ -22,6 +22,7 @@ test('Fastify API enforces auth and supports versioned CRUD against PostgreSQL',
   let userId: string | undefined;
   let organizationId: string | undefined;
   let lotId: string | undefined;
+  let operatorLotId: string | undefined;
   let equipmentId: string | undefined;
 
   try {
@@ -150,6 +151,75 @@ test('Fastify API enforces auth and supports versioned CRUD against PostgreSQL',
     });
     assert.equal(newUser.statusCode, 201);
     assert.equal('senhaHash' in newUser.json(), false);
+    const operatorJwtToken = app.jwt.sign({ sub: newUser.json().id, papel: 'OPERADOR' }, { expiresIn: '8h' });
+    const operatorHeaders = { authorization: `Bearer ${operatorJwtToken}` };
+    const operatorRead = await app.inject({ method: 'GET', url: '/api/organizacoes', headers: operatorHeaders });
+    assert.equal(operatorRead.statusCode, 200);
+    const operatorLot = await app.inject({
+      method: 'POST',
+      url: '/api/lotes',
+      headers: operatorHeaders,
+      payload: { codigo: `LOT-OP-${suffix}`, organizacaoId: organizationId },
+    });
+    assert.equal(operatorLot.statusCode, 201);
+    operatorLotId = operatorLot.json().id as string;
+    const operatorUpdate = await app.inject({
+      method: 'PUT',
+      url: `/api/lotes/${operatorLotId}`,
+      headers: operatorHeaders,
+      payload: { descricao: 'Atualizado por operador', versao: 1 },
+    });
+    assert.equal(operatorUpdate.statusCode, 200);
+    const operatorDelete = await app.inject({
+      method: 'DELETE',
+      url: `/api/lotes/${operatorLotId}`,
+      headers: operatorHeaders,
+    });
+    assert.equal(operatorDelete.statusCode, 403);
+    const operatorUserManagement = await app.inject({
+      method: 'GET',
+      url: '/api/admin/usuarios',
+      headers: operatorHeaders,
+    });
+    assert.equal(operatorUserManagement.statusCode, 403);
+
+    const consultation = await app.inject({
+      method: 'POST',
+      url: '/api/admin/usuarios',
+      headers,
+      payload: { nome: 'Consulta integração', email: `consult-${suffix}@integration.local`, senha: 'Consulta@1234', papel: 'CONSULTA' },
+    });
+    assert.equal(consultation.statusCode, 201);
+    const consultationLogin = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: `consult-${suffix}@integration.local`, senha: 'Consulta@1234' },
+    });
+    assert.equal(consultationLogin.statusCode, 200);
+    const consultationHeaders = { authorization: `Bearer ${consultationLogin.json().token as string}` };
+    const consultationRead = await app.inject({ method: 'GET', url: '/api/organizacoes', headers: consultationHeaders });
+    assert.equal(consultationRead.statusCode, 200);
+    const consultationWrite = await app.inject({
+      method: 'POST',
+      url: '/api/lotes',
+      headers: consultationHeaders,
+      payload: { codigo: `LOT-RO-${suffix}`, organizacaoId: organizationId },
+    });
+    assert.equal(consultationWrite.statusCode, 403);
+    const consultationUpdate = await app.inject({
+      method: 'PUT',
+      url: `/api/lotes/${operatorLotId}`,
+      headers: consultationHeaders,
+      payload: { descricao: 'Atualização não autorizada', versao: 2 },
+    });
+    assert.equal(consultationUpdate.statusCode, 403);
+    const consultationUserManagement = await app.inject({
+      method: 'GET',
+      url: '/api/admin/usuarios',
+      headers: consultationHeaders,
+    });
+    assert.equal(consultationUserManagement.statusCode, 403);
+
     const operatorToken = app.jwt.sign({ sub: newUser.json().id, papel: 'OPERADOR' }, { expiresIn: '8h' });
     const forbidden = await app.inject({ method: 'GET', url: '/api/admin/usuarios', headers: { authorization: `Bearer ${operatorToken}` } });
     assert.equal(forbidden.statusCode, 403);
@@ -183,6 +253,7 @@ test('Fastify API enforces auth and supports versioned CRUD against PostgreSQL',
     if (app) await app.close();
     if (equipmentId) await prisma.movimentacao.deleteMany({ where: { equipamentoId: equipmentId } });
     if (equipmentId) await prisma.equipamento.deleteMany({ where: { id: equipmentId } });
+    if (operatorLotId) await prisma.lote.deleteMany({ where: { id: operatorLotId } });
     if (lotId) await prisma.lote.deleteMany({ where: { id: lotId } });
     if (organizationId) await prisma.organizacao.deleteMany({ where: { id: organizationId } });
     await prisma.usuario.deleteMany({ where: { email: { endsWith: `${suffix}@integration.local` } } });

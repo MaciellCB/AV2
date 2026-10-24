@@ -36,12 +36,13 @@ test('each configured transition is accepted and every unspecified transition is
 test('role permissions follow least privilege', () => {
   assert.equal(roleCan('CONSULTA', 'read'), true);
   assert.equal(roleCan('CONSULTA', 'write'), false);
+  assert.equal(roleCan('CONSULTA', 'admin'), false);
+  assert.equal(roleCan('OPERADOR', 'read'), true);
   assert.equal(roleCan('OPERADOR', 'write'), true);
   assert.equal(roleCan('OPERADOR', 'admin'), false);
+  assert.equal(roleCan('ADMINISTRADOR', 'read'), true);
+  assert.equal(roleCan('ADMINISTRADOR', 'write'), true);
   assert.equal(roleCan('ADMINISTRADOR', 'admin'), true);
-  for (const role of ['ADMINISTRADOR', 'OPERADOR', 'CONSULTA'] as const) {
-    assert.equal(roleCan(role, 'read'), true);
-  }
 });
 
 test('CNPJ validation checks verifier digits and normalizes formatted input', () => {

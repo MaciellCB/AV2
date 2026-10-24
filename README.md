@@ -96,12 +96,13 @@ Abra **http://localhost:5173** no navegador. Para conferir se a API iniciou, ace
 
 ### Login de demonstração
 
-- E-mail: `admin@greencode.local`
-- Senha: `GreenCode@123`
+- **ADMINISTRADOR** — `admin@greencode.local` / `GreenCode@123`
+- **OPERADOR** — `operador@greencode.local` / `Operador@123`
+- **CONSULTA** — `consulta@greencode.local` / `Consulta@123`
 
-O seed cria esses dados de demonstração. As credenciais são apenas para desenvolvimento local; altere-as antes de qualquer implantação real e nunca publique arquivos `.env`.
+O seed cria essas contas de demonstração. O formulário de login começa vazio; informe as credenciais manualmente. Essas senhas são apenas para desenvolvimento local: altere-as antes de qualquer implantação real e nunca publique arquivos `.env`.
 
-Administradores podem abrir **Usuários** no menu para criar contas de operadores e de consulta. Senhas devem ter pelo menos 10 caracteres. Não é permitido desativar, rebaixar ou excluir a própria conta nem deixar o sistema sem um administrador ativo.
+`CONSULTA` pode apenas visualizar dados. `OPERADOR` pode consultar, criar e atualizar dados operacionais, mas não excluir registros nem administrar contas. `ADMINISTRADOR` pode fazer essas operações e gerenciar usuários. Administradores podem abrir **Usuários** no menu para criar contas. Senhas devem ter pelo menos 10 caracteres. Não é permitido desativar, rebaixar ou excluir a própria conta nem deixar o sistema sem um administrador ativo.
 
 Se o navegador ainda mostrar “Autenticação necessária” no painel por causa de uma sessão antiga, atualize a página. O app removerá o token inválido e voltará à tela de login.
 
