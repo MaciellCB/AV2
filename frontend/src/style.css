@@ -32,3 +32,6 @@ button.compact{padding:7px 10px;font-size:12px;white-space:nowrap}
 label select{font:inherit}
 .create-form select{border:1px solid #dfe8df;border-radius:9px;padding:12px;color:#273b2c;outline:none;font-size:12px;background:#fff}
 .finance-panel{margin-top:16px}.finance-panel .panel-head>strong{font:800 20px Manrope,sans-serif;color:#187d43}.finance-breakdown{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.finance-breakdown>div{display:flex;justify-content:space-between;gap:8px;background:#f8faf7;border-radius:8px;padding:10px;font-size:10px}.finance-breakdown span{color:#758277}.finance-breakdown b{color:#34463a}
+
+.brand .close-mobile{display:none}
+@media(max-width:760px){.brand .close-mobile{display:grid}}

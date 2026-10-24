@@ -10,6 +10,7 @@ test('admin logs in and creates then removes a user from the site', async ({ pag
   await page.getByRole('button', { name: 'Entrar no sistema' }).click();
 
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Fechar menu' })).toBeHidden();
   await page.getByRole('button', { name: 'Usuários' }).click();
   await page.getByRole('button', { name: 'Novo cadastro' }).click();
   await page.getByLabel('Nome', { exact: true }).fill('Operador E2E');
