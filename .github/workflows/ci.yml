@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  platform-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Validate Linux setup script syntax
+        if: runner.os == 'Linux'
+        run: bash -n setup-linux.sh
+      - name: Install and validate backend
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://greencode:greencode_dev@localhost:5433/greencode?schema=public
+          JWT_SECRET: ci-secret-for-typechecking-and-build-at-least-32-characters
+        run: |
+          npm ci
+          npx prisma generate
+          npm test
+          npm run typecheck
+          npm run build
+      - name: Install and build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+  api-integration:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: greencode
+          POSTGRES_PASSWORD: greencode_ci
+          POSTGRES_DB: greencode_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U greencode -d greencode_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install and migrate database
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://greencode:greencode_ci@localhost:5432/greencode_test?schema=public
+          JWT_SECRET: ci-integration-secret-at-least-32-characters
+        run: |
+          npm ci
+          npx prisma generate
+          npx prisma migrate deploy
+          npm run db:seed
+      - name: Run API integration tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://greencode:greencode_ci@localhost:5432/greencode_test?schema=public
+          TEST_DATABASE_URL: postgresql://greencode:greencode_ci@localhost:5432/greencode_test?schema=public
+          JWT_SECRET: ci-integration-secret-at-least-32-characters
+        run: npm test
+      - name: Install frontend and browser
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run browser end-to-end tests
+        working-directory: frontend
+        env:
+          DATABASE_URL: postgresql://greencode:greencode_ci@localhost:5432/greencode_test?schema=public
+          TEST_DATABASE_URL: postgresql://greencode:greencode_ci@localhost:5432/greencode_test?schema=public
+          JWT_SECRET: ci-integration-secret-at-least-32-characters
+          CI: true
+        run: npm run test:e2e

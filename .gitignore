@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+.vscode/
+frontend/.vite/
+frontend/test-results/
+frontend/playwright-report/
+backend/prisma/*.db
