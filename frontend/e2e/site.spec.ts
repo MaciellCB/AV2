@@ -11,6 +11,13 @@ test('admin logs in and creates then removes a user from the site', async ({ pag
 
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Fechar menu' })).toBeHidden();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('button.mobile-menu').click();
+  await expect(page.locator('aside.sidebar')).toHaveClass('sidebar open');
+  await expect(page.getByRole('button', { name: 'Fechar menu' })).toBeVisible();
+  await page.getByRole('button', { name: 'Fechar menu' }).click();
+  await expect(page.locator('aside.sidebar')).toHaveClass('sidebar');
+  await page.setViewportSize({ width: 1280, height: 800 });
   await page.getByRole('button', { name: 'Usuários' }).click();
   await page.getByRole('button', { name: 'Novo cadastro' }).click();
   await page.getByLabel('Nome', { exact: true }).fill('Operador E2E');
@@ -35,4 +42,25 @@ test('tables expose text search and server pagination controls', async ({ page }
   await expect(page.getByRole('textbox', { name: 'Pesquisar registros' })).toBeVisible();
   await expect(page.getByRole('combobox', { name: 'Filtrar por status' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Próxima' })).toBeVisible();
+});
+
+test('seeded operator and consultation accounts receive their assigned UI access', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('input[type="email"]').fill('operador@greencode.local');
+  await page.locator('input[type="password"]').fill('Operador@123');
+  await page.getByRole('button', { name: 'Entrar no sistema' }).click();
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
+  await page.getByRole('button', { name: 'Organizações', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Novo cadastro' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Usuários', exact: true })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Sair da conta' }).click();
+  await page.locator('input[type="email"]').fill('consulta@greencode.local');
+  await page.locator('input[type="password"]').fill('Consulta@123');
+  await page.getByRole('button', { name: 'Entrar no sistema' }).click();
+  await expect(page.getByRole('heading', { name: 'Organizações', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Organizações', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Novo cadastro' })).toHaveCount(0);
+  await expect(page.getByRole('columnheader', { name: 'Ações' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Usuários', exact: true })).toHaveCount(0);
 });
